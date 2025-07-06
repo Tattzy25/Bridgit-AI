@@ -239,35 +239,11 @@ export class BridgitAIOrchestrator {
     source: Array<{ code: string; name: string }>;
     target: Array<{ code: string; name: string }>;
   }> {
-    try {
-      return await DeepLService.getSupportedLanguages();
-    } catch (error) {
-      console.error("Failed to get supported languages:", error);
-      // Return default languages as fallback
-      return {
-        source: [
-          { code: "EN", name: "English" },
-          { code: "ES", name: "Spanish" },
-          { code: "FR", name: "French" },
-          { code: "DE", name: "German" },
-        ],
-        target: [
-          { code: "EN", name: "English" },
-          { code: "ES", name: "Spanish" },
-          { code: "FR", name: "French" },
-          { code: "DE", name: "German" },
-        ],
-      };
-    }
+    return await DeepLService.getSupportedLanguages();
   }
 
   async detectLanguage(text: string): Promise<string> {
-    try {
-      return await OpenRouterService.detectLanguage(text);
-    } catch (error) {
-      console.warn("Language detection failed:", error);
-      return "en"; // Default fallback
-    }
+    return await OpenRouterService.detectLanguage(text);
   }
 
   // Voice Management
@@ -372,12 +348,9 @@ export class BridgitAIOrchestrator {
   }
 
   onConnectionChange(callback: (status: ConnectionStatus) => void): () => void {
-    // Mock implementation - in production you'd listen to actual connection events
-    const interval = setInterval(() => {
-      callback(this.getConnectionStatus());
-    }, 5000);
-
-    return () => clearInterval(interval);
+    // Production: Listen to actual connection events here
+    // TODO: Implement real event listeners for connection changes
+    return () => {};
   }
 
   // Cleanup

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ArrowLeftRight } from "lucide-react";
 import LanguageSelector, { Language, languages } from "./LanguageSelector";
 import MicButton from "./MicButton";
 import StateLabel from "./StateLabel";
 import SendRedoControls from "./SendRedoControls";
+import SpeechToTextService from "../lib/services/stt";
+import DeepLService from "../lib/services/deepl";
 
 interface TranslatorCardProps {
   cardId?: string;
@@ -31,8 +33,8 @@ export default function TranslatorCard({
   pendingTranslation,
   showSendControls = false,
 }: TranslatorCardProps) {
-  // Mock username - replace with actual auth data
-  const username = "@Avi"; // This would come from auth context
+  // Replace mock username with real auth context (placeholder for now)
+  const username = ""; // TODO: Integrate with real auth context
   const [sourceLanguage, setSourceLanguage] = useState<Language>(languages[0]);
   const [targetLanguage, setTargetLanguage] = useState<Language>(languages[1]);
   const [inputText, setInputText] = useState("");
@@ -41,41 +43,54 @@ export default function TranslatorCard({
   const [currentState, setCurrentState] = useState<
     "idle" | "listening" | "processing" | "speaking" | "error"
   >("idle");
-
   const [isSwapping, setIsSwapping] = useState(false);
+  const stopRecordingRef = useRef<null | (() => void)>(null);
 
   const handleLanguageSwap = () => {
     setIsSwapping(true);
     const temp = sourceLanguage;
     setSourceLanguage(targetLanguage);
     setTargetLanguage(temp);
-
-    // Reset animation after completion
     setTimeout(() => {
       setIsSwapping(false);
     }, 1000);
   };
 
-  const handleMicToggle = () => {
+  const handleMicToggle = async () => {
     if (isListening) {
       setIsListening(false);
       setCurrentState("processing");
-
-      // Simulate processing
-      setTimeout(() => {
-        setOutputText("This is a simulated translation result...");
-        setCurrentState("speaking");
-
-        // Simulate speaking
-        setTimeout(() => {
-          setCurrentState("idle");
-        }, 2000);
-      }, 1500);
+      if (stopRecordingRef.current) {
+        stopRecordingRef.current();
+      }
     } else {
       setIsListening(true);
       setCurrentState("listening");
       setInputText("");
       setOutputText("");
+      stopRecordingRef.current = await SpeechToTextService.recordAndTranscribe(
+        async (result) => {
+          setCurrentState("processing");
+          setInputText(result.text || "");
+          try {
+            const translation = await DeepLService.translateText(
+              result.text || "",
+              targetLanguage.code,
+              sourceLanguage.code
+            );
+            setOutputText(translation.text);
+            setCurrentState("idle");
+          } catch (err) {
+            setCurrentState("error");
+            setOutputText("Translation failed");
+          }
+        },
+        (err) => {
+          setCurrentState("error");
+          setOutputText("Transcription failed");
+        },
+        { language: sourceLanguage.code }
+      );
     }
   };
 

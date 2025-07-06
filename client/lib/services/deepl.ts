@@ -148,3 +148,4 @@ export class DeepLService {
 }
 
 export default new DeepLService();
+// NOTE: This client service acts as a wrapper for backend API endpoints, which use the official DeepL SDK. All translation logic is handled server-side for security and API key protection.

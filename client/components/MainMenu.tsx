@@ -15,6 +15,9 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
+import { StackProvider, StackTheme, StackHandler } from "@stackframe/react";
+import { stackClientApp } from "../stack";
+import LoginSignupPopup from "./LoginSignupPopup";
 
 interface MainMenuProps {
   isOpen: boolean;
@@ -31,6 +34,7 @@ export default function MainMenu({
   currentMode = "just-me",
 }: MainMenuProps) {
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [showAuthPopup, setShowAuthPopup] = useState(false);
   const [sessionType, setSessionType] = useState<SessionType>("none");
   const [hostCode, setHostCode] = useState("ABC123");
   const [joinCode, setJoinCode] = useState("");
@@ -38,6 +42,7 @@ export default function MainMenu({
     useState<ConnectionStatus>("disconnected");
   const navigate = useNavigate();
   const location = useLocation();
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
   const handleModeChange = (newMode: "just-me" | "talk-together") => {
     navigate(`/${newMode}`);
@@ -45,11 +50,13 @@ export default function MainMenu({
   };
 
   const handleSignIn = () => {
-    setIsSignedIn(true);
+    setAuthMode("login");
+    setShowAuthPopup(true);
   };
 
   const handleSignUp = () => {
-    setIsSignedIn(true);
+    setAuthMode("signup");
+    setShowAuthPopup(true);
   };
 
   const handleSignOut = () => {
@@ -126,7 +133,14 @@ export default function MainMenu({
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
         onClick={onClose}
       />
-
+      {/* Neon Auth Popup */}
+      {showAuthPopup && (
+        <LoginSignupPopup
+          isOpen={showAuthPopup}
+          onClose={() => setShowAuthPopup(false)}
+          mode={authMode}
+        />
+      )}
       {/* Menu */}
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md mx-4 z-50 animate-slide-up">
         <div className="glass rounded-2xl border border-glass-border backdrop-blur-xl p-6">
@@ -262,6 +276,7 @@ export default function MainMenu({
                     placeholder="Enter 6-digit code"
                     maxLength={6}
                     className="w-full px-3 py-2 glass rounded-lg border border-glass-border bg-card/30 text-foreground font-mono text-lg text-center focus:outline-none focus:border-neon-cyan/50 focus:shadow-neon-cyan/20 transition-all duration-300"
+                    title="Connection Code Input"
                   />
                   <div
                     className={`mt-2 text-xs font-medium ${getConnectionStatusInfo().color} flex items-center gap-2`}
@@ -320,28 +335,40 @@ export default function MainMenu({
 
           {/* Feature Actions */}
           <div className="grid grid-cols-2 gap-3">
-            <button className="glass rounded-xl border border-glass-border hover:border-neon-blue/50 hover:shadow-neon-blue/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300">
+            <button
+              className="glass rounded-xl border border-glass-border hover:border-neon-blue/50 hover:shadow-neon-blue/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300"
+              title="Voice Library"
+            >
               <Volume2 className="w-6 h-6 text-neon-blue group-hover:scale-110 transition-transform duration-300" />
               <span className="text-xs font-medium text-neon-blue">
                 Voice Library
               </span>
             </button>
 
-            <button className="glass rounded-xl border border-glass-border hover:border-neon-pink/50 hover:shadow-neon-pink/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300">
+            <button
+              className="glass rounded-xl border border-glass-border hover:border-neon-pink/50 hover:shadow-neon-pink/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300"
+              title="Voice Cloning"
+            >
               <Copy className="w-6 h-6 text-neon-pink group-hover:scale-110 transition-transform duration-300" />
               <span className="text-xs font-medium text-neon-pink">
                 Voice Cloning
               </span>
             </button>
 
-            <button className="glass rounded-xl border border-glass-border hover:border-neon-green/50 hover:shadow-neon-green/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300">
+            <button
+              className="glass rounded-xl border border-glass-border hover:border-neon-green/50 hover:shadow-neon-green/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300"
+              title="Saved Voices"
+            >
               <Save className="w-6 h-6 text-neon-green group-hover:scale-110 transition-transform duration-300" />
               <span className="text-xs font-medium text-neon-green">
                 Saved Voices
               </span>
             </button>
 
-            <button className="glass rounded-xl border border-glass-border hover:border-neon-purple/50 hover:shadow-neon-purple/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300">
+            <button
+              className="glass rounded-xl border border-glass-border hover:border-neon-purple/50 hover:shadow-neon-purple/30 p-4 flex flex-col items-center gap-2 group transition-all duration-300"
+              title="Settings"
+            >
               <Settings className="w-6 h-6 text-neon-purple group-hover:rotate-90 transition-transform duration-300" />
               <span className="text-xs font-medium text-neon-purple">
                 Settings

@@ -22,15 +22,23 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
+    "@stackframe/js": "^2.8.17",
+    "@stackframe/react": "^2.8.17",
     "@types/pg": "^8.15.4",
+    "@vitejs/plugin-react": "^4.6.0",
     "ably": "^2.10.0",
+    "deepl": "^1.0.13",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
     "node-fetch": "^2.7.0",
     "pg": "^8.16.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@pinegrow/piny-vite": "^1.0.10",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-aspect-ratio": "^1.1.0",

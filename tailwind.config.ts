@@ -14,7 +14,6 @@ export default {
     },
     extend: {
       colors: {
-        // Cyberpunk neon theme
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: "hsl(var(--card))",
@@ -30,8 +29,6 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-
-        // Neon cyberpunk colors
         neon: {
           cyan: "hsl(var(--neon-cyan))",
           blue: "hsl(var(--neon-blue))",
@@ -41,7 +38,6 @@ export default {
           orange: "hsl(var(--neon-orange))",
           red: "hsl(var(--neon-red))",
         },
-
         glass: {
           bg: "hsl(var(--glass-bg))",
           border: "hsl(var(--glass-border))",

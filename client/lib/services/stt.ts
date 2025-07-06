@@ -133,66 +133,58 @@ export class SpeechToTextService {
   }
 
   // Fallback STT using Web Speech API
-  async transcribeWithWebSpeechAPI(
-    audioBlob: Blob,
-    options: STTOptions = {},
-  ): Promise<STTResult> {
-    return new Promise((resolve, reject) => {
-      if (
-        !("webkitSpeechRecognition" in window) &&
-        !("SpeechRecognition" in window)
-      ) {
-        reject(new Error("Web Speech API not supported"));
-        return;
-      }
-
-      const SpeechRecognition =
-        (window as any).SpeechRecognition ||
-        (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = options.language || "en-US";
-
-      recognition.onresult = (event: any) => {
-        const result = event.results[0];
-        const transcript = result[0].transcript;
-        const confidence = result[0].confidence || 0.8;
-
-        resolve({
-          text: transcript,
-          confidence,
-          language: options.language || "en",
-          duration: 0,
-        });
-      };
-
-      recognition.onerror = (event: any) => {
-        reject(new Error(`Web Speech API error: ${event.error}`));
-      };
-
-      recognition.onend = () => {
-        // Recognition ended
-      };
-
-      // Create audio URL from blob and play it to trigger recognition
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-
-      audio.onplay = () => {
-        recognition.start();
-      };
-
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      audio.play().catch(reject);
-    });
-  }
+  // REMOVED: transcribeWithWebSpeechAPI
 
   // Real-time streaming STT (for live microphone input)
+  // REMOVED: startRealtimeTranscription
+  // Use recordAndTranscribe instead
+  async recordAndTranscribe(
+    onResult: (result: Partial<STTResult>) => void,
+    onError: (error: Error) => void,
+    options: STTOptions = {},
+  ): Promise<() => void> {
+    let mediaRecorder: MediaRecorder | null = null;
+    let audioChunks: Blob[] = [];
+    let stopped = false;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        if (stopped) return;
+        stopped = true;
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        try {
+          const wavBlob = await this.convertAudioFormat(audioBlob, 'wav');
+          const result = await this.transcribeAudio(wavBlob, options);
+          onResult(result);
+        } catch (err) {
+          onError(err instanceof Error ? err : new Error(String(err)));
+        }
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+    } catch (err) {
+      onError(err instanceof Error ? err : new Error(String(err)));
+      return () => {};
+    }
+
+    // Return stop function
+    return () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    };
+  }
+
   startRealtimeTranscription(
     onResult: (result: Partial<STTResult>) => void,
     onError: (error: Error) => void,
